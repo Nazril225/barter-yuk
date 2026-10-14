@@ -1,22 +1,18 @@
-// ==========================================
 // 1. Selector Elemen DOM (Week 3)
-// ==========================================
 const btnKatalog = document.querySelector("#btn-katalog");
 const katalogSection = document.querySelector("#katalog");
 const loadingIndicator = document.querySelector("#loading");
 const container = document.querySelector("#item-list");
 const formTambah = document.querySelector("#form-tambah");
+const inputPencarian = document.querySelector("#input-pencarian");
 
-// Event handling scroll halus saat tombol "Lihat Katalog" diklik
 if (btnKatalog && katalogSection) {
     btnKatalog.addEventListener("click", () => {
         katalogSection.scrollIntoView({ behavior: "smooth" });
     });
 }
 
-// ==========================================
 // 2. Data Master (Array of Objects - Week 4)
-// ==========================================
 let daftarBarang = [
     { id: 1, nama: "Buku Pemrograman Web", kondisi: "Mulus 90%", kategori: "Buku & Edukasi" },
     { id: 2, nama: "Gitar Akustik", kondisi: "Layak Pakai", kategori: "Hobi" },
@@ -24,14 +20,18 @@ let daftarBarang = [
     { id: 4, nama: "Headset Bluetooth", kondisi: "Segel / Baru", kategori: "Elektronik" }
 ];
 
-// ==========================================
 // 3. Fungsi Render Data ke DOM
-// ==========================================
-function renderBarang() {
+function renderBarang(dataArray) {
     if (!container) return;
     
     container.innerHTML = "";
-    daftarBarang.forEach(barang => {
+    
+    if (dataArray.length === 0) {
+        container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Barang tidak ditemukan.</p>`;
+        return;
+    }
+
+    dataArray.forEach(barang => {
         const cardHTML = `
             <article class="card">
                 <h3>${barang.nama}</h3>
@@ -44,19 +44,27 @@ function renderBarang() {
     });
 }
 
-// ==========================================
 // 4. Simulasi Async & Loading State (Week 4)
-// ==========================================
 setTimeout(() => {
     if (loadingIndicator) {
         loadingIndicator.style.display = "none";
     }
-    renderBarang();
+    renderBarang(daftarBarang);
 }, 600);
 
-// ==========================================
-// 5. Form Submit Handling (Tambah Barang)
-// ==========================================
+// 5. Fitur Pencarian Real-Time (Live Search)
+if (inputPencarian) {
+    inputPencarian.addEventListener("input", (e) => {
+        const keyword = e.target.value.toLowerCase();
+        const hasilFilter = daftarBarang.filter(barang => 
+            barang.nama.toLowerCase().includes(keyword) || 
+            barang.kategori.toLowerCase().includes(keyword)
+        );
+        renderBarang(hasilFilter);
+    });
+}
+
+// 6. Form Submit Handling (Tambah Barang Baru)
 if (formTambah) {
     formTambah.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -74,23 +82,15 @@ if (formTambah) {
             kategori: kategoriInput.value
         };
 
-        // Tambah ke array & render ulang
         daftarBarang.push(barangBaru);
-        renderBarang();
-        
-        // Reset form input
+        renderBarang(daftarBarang);
         formTambah.reset();
         
-        alert("Barang baru berhasil ditambahkan ke katalog!");
-        if (katalogSection) {
-            katalogSection.scrollIntoView({ behavior: "smooth" });
-        }
+        alert("Barang barter baru berhasil ditambahkan!");
+        katalogSection.scrollIntoView({ behavior: "smooth" });
     });
 }
 
-// ==========================================
-// 6. Fungsi Interaktif Aksi Barter
-// ==========================================
 function ajukanBarter(namaItem) {
     alert(`Permintaan barter untuk "${namaItem}" berhasil diajukan!`);
 }
