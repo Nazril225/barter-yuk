@@ -1,26 +1,23 @@
-<?php
-    $namaWebsite = "BarterYuk!";
-    $tahun = 2026;
-    $statusServer = "Aktif";
-?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $namaWebsite; ?> - Platform Barter Barang Online</title>
+    <title>BarterYuk! - Platform Barter Barang Online</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Header / Navbar (Week 2: Semantic HTML) -->
     <header>
-        <div class="logo">🔄 <?php echo $namaWebsite; ?></div>
+        <div class="logo">🔄 BarterYuk!</div>
         <nav>
-            <a href="#beranda">Beranda</a>
+            <a href="#hero">Beranda</a>
             <a href="#katalog">Katalog Barang</a>
             <a href="#tambah">Tambah Barang</a>
         </nav>
     </header>
 
+    <!-- Main Content -->
     <main>
         <section id="hero">
             <h1>Tukar Barangmu dengan yang Kamu Butuhkan</h1>
@@ -28,24 +25,19 @@
             <button id="btn-katalog" class="btn">Lihat Katalog</button>
         </section>
 
+        <!-- Section Katalog Barang -->
         <section id="katalog">
             <h2>Barang Pilihan untuk Dibarter</h2>
+            <div id="loading" style="text-align: center; color: #2563eb; margin-bottom: 15px;">Memuat data barang...</div>
             <div id="item-list" class="grid-container">
-                <!-- Konten akan dimuat oleh JavaScript atau PHP -->
+                <!-- Data barang akan dimuat secara dinamis melalui JavaScript -->
             </div>
         </section>
     </main>
 
+    <!-- Footer -->
     <footer>
-        <p>&copy; <?php echo $tahun; ?> <?php echo $namaWebsite; ?> - Status Server: 
-           <?php 
-               if($statusServer === "Aktif") {
-                   echo "<span style='color: #4ade80;'>Berjalan Normal</span>";
-               } else {
-                   echo "<span style='color: #f87171;'>Maintenance</span>";
-               }
-           ?>
-        </p>
+        <p>&copy; 2026 BarterYuk! - Web Programming Project (Week 1 - 5)</p>
     </footer>
 
     <script src="script.js"></script>
