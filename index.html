@@ -43,3 +43,68 @@
     <script src="script.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarterYuk! - Platform Barter Barang Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header / Navbar -->
+    <header>
+        <div class="logo">🔄 BarterYuk!</div>
+        <nav>
+            <a href="#hero">Beranda</a>
+            <a href="#katalog">Katalog Barang</a>
+            <a href="#tambah">Tambah Barang</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <section id="hero">
+            <h1>Tukar Barangmu dengan yang Kamu Butuhkan</h1>
+            <p>Solusi mudah, ramah lingkungan, dan hemat tanpa uang tunai.</p>
+            <button id="btn-katalog" class="btn">Lihat Katalog</button>
+        </section>
+
+        <!-- Section Katalog Barang -->
+        <section id="katalog">
+            <h2>Barang Pilihan untuk Dibarter</h2>
+            <div id="loading" style="text-align: center; color: #2563eb; margin-bottom: 15px;">Memuat data barang...</div>
+            <div id="item-list" class="grid-container">
+                <!-- Data barang akan dimuat secara dinamis -->
+            </div>
+        </section>
+
+        <!-- Section Tambah Barang (Form Interaktif) -->
+        <section id="tambah" style="max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            <h2 style="color: #1e3a8a; margin-bottom: 20px; text-align: center;">Tambah Barang Barter Baru</h2>
+            <form id="form-tambah">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Nama Barang:</label>
+                    <input type="text" id="nama-barang" required placeholder="Contoh: Smartwatch Bekas" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Kondisi:</label>
+                    <input type="text" id="kondisi-barang" required placeholder="Contoh: Mulus 95%" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Kategori:</label>
+                    <input type="text" id="kategori-barang" required placeholder="Contoh: Elektronik" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Simpan Barang</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 BarterYuk! - Web Programming Project</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

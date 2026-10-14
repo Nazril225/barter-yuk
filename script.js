@@ -1,28 +1,35 @@
-// Week 3: Selector & Event Handling
+// ==========================================
+// 1. Selector Elemen DOM (Week 3)
+// ==========================================
 const btnKatalog = document.querySelector("#btn-katalog");
 const katalogSection = document.querySelector("#katalog");
 const loadingIndicator = document.querySelector("#loading");
 const container = document.querySelector("#item-list");
+const formTambah = document.querySelector("#form-tambah");
 
-// Event Scroll Halus
-btnKatalog.addEventListener("click", () => {
-    katalogSection.scrollIntoView({ behavior: "smooth" });
-});
+// Event handling scroll halus saat tombol "Lihat Katalog" diklik
+if (btnKatalog && katalogSection) {
+    btnKatalog.addEventListener("click", () => {
+        katalogSection.scrollIntoView({ behavior: "smooth" });
+    });
+}
 
-// Week 4: Array of Objects & Asynchronous Data Simulation (Handling Loading State)
-const daftarBarang = [
+// ==========================================
+// 2. Data Master (Array of Objects - Week 4)
+// ==========================================
+let daftarBarang = [
     { id: 1, nama: "Buku Pemrograman Web", kondisi: "Mulus 90%", kategori: "Buku & Edukasi" },
     { id: 2, nama: "Gitar Akustik", kondisi: "Layak Pakai", kategori: "Hobi" },
     { id: 3, nama: "Sepeda Lipat", kondisi: "Seperti Baru", kategori: "Kendaraan" },
     { id: 4, nama: "Headset Bluetooth", kondisi: "Segel / Baru", kategori: "Elektronik" }
 ];
 
-// Simulasi pengambilan data asynchronous (Week 4: Promise & Timeout)
-setTimeout(() => {
-    // Sembunyikan indikator loading
-    loadingIndicator.style.display = "none";
-
-    // Render Data ke DOM
+// ==========================================
+// 3. Fungsi Render Data ke DOM
+// ==========================================
+function renderBarang() {
+    if (!container) return;
+    
     container.innerHTML = "";
     daftarBarang.forEach(barang => {
         const cardHTML = `
@@ -35,9 +42,55 @@ setTimeout(() => {
         `;
         container.innerHTML += cardHTML;
     });
-}, 800); // Simulasi delay loading 0.8 detik
+}
 
-// Function Interaktif
+// ==========================================
+// 4. Simulasi Async & Loading State (Week 4)
+// ==========================================
+setTimeout(() => {
+    if (loadingIndicator) {
+        loadingIndicator.style.display = "none";
+    }
+    renderBarang();
+}, 600);
+
+// ==========================================
+// 5. Form Submit Handling (Tambah Barang)
+// ==========================================
+if (formTambah) {
+    formTambah.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const namaInput = document.querySelector("#nama-barang");
+        const kondisiInput = document.querySelector("#kondisi-barang");
+        const kategoriInput = document.querySelector("#kategori-barang");
+
+        if (!namaInput || !kondisiInput || !kategoriInput) return;
+
+        const barangBaru = {
+            id: daftarBarang.length + 1,
+            nama: namaInput.value,
+            kondisi: kondisiInput.value,
+            kategori: kategoriInput.value
+        };
+
+        // Tambah ke array & render ulang
+        daftarBarang.push(barangBaru);
+        renderBarang();
+        
+        // Reset form input
+        formTambah.reset();
+        
+        alert("Barang baru berhasil ditambahkan ke katalog!");
+        if (katalogSection) {
+            katalogSection.scrollIntoView({ behavior: "smooth" });
+        }
+    });
+}
+
+// ==========================================
+// 6. Fungsi Interaktif Aksi Barter
+// ==========================================
 function ajukanBarter(namaItem) {
     alert(`Permintaan barter untuk "${namaItem}" berhasil diajukan!`);
 }
