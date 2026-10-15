@@ -26,6 +26,12 @@
 
 declare(strict_types=1);
 
+// Jangan pernah mencetak warning/notice/error PHP ke body respons JSON.
+// Detail teknis tetap dicatat ke log server lewat error_log() (lihat blok catch).
+// Ini adalah jaring pengaman selain perbaikan validasi parameter di bawah.
+ini_set('display_errors', '0');
+ini_set('html_errors', '0');
+
 // Semua keluaran memakai tipe konten JSON
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -51,7 +57,11 @@ if ($metode !== 'GET') {
     ]);
 }
 
-$filterKategori = trim((string) ($_GET['kategori'] ?? ''));
+// `kategori` hanya diproses bila bertipe string. Bila klien mengirim array
+// (mis. ?kategori[]=Elektronik), parameter diabaikan dengan aman tanpa memicu
+// "Array to string conversion"; respons tetap JSON valid.
+$kategoriMentah  = $_GET['kategori'] ?? '';
+$filterKategori  = is_string($kategoriMentah) ? trim($kategoriMentah) : '';
 
 try {
     $pdo = koneksi();
