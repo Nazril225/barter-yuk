@@ -11,7 +11,9 @@ Aplikasi web satu halaman yang terdiri dari katalog barang, form tambah barang, 
 | Nama proyek | BarterYuk! |
 | Jenis | Aplikasi web statis (HTML/CSS/JavaScript) + JSON API PHP |
 | Konteks | Tugas mata kuliah Pemrograman Web, mengacu materi Week 1–5 |
-| Penyusun | *isi nama & NIM* |
+| Penyusun | Nazril — NIM: `[202410370110395]` |
+| Penyusun | Adha - NIM: `[202410370110396]` |
+| Penyusun | Mukmin - NIM: `[202410370110397]` |
 | Berkas utama | `index.html`, `style.css`, `script.js`, `api/barang.php` |
 
 ---
@@ -102,7 +104,7 @@ Padahal kebutuhan pengguna sering kali bisa dipenuhi dengan **menukar barang sec
 | Aksesibilitas dasar | Skip link, label form, `aria-live`, `aria-pressed` pada chip, focus trap di modal, dukungan `prefers-reduced-motion` | `index.html`, `style.css`, `script.js` |
 | Responsif | Layout adaptif (Grid/Flexbox) dengan satu breakpoint di 720 px | `style.css` (`@media (max-width: 720px)`) |
 
-**Contoh data:** katalog awal berisi 6 barang contoh (MacBook Air M1 2020, Gitar Akustik Yamaha F310, Sepeda Lipat Pacific Noris, Buku Pemrograman Web Lengkap, Nintendo Switch Lite, Rak Buku Kayu Minimalis) yang tersebar pada 8 kategori, dengan 5 pilihan kondisi.
+**Contoh data:** katalog awal berisi 6 barang contoh (MacBook Air M1 2020, Gitar Akustik Yamaha F310, Sepeda Lipat Pacific Noris, Buku Pemrograman Web Lengkap, Nintendo Switch Lite, Rak Buku Kayu Minimalis). Keenam barang ini mencakup **5 kategori unik** (Elektronik, Hobi, Kendaraan, Buku & Edukasi, Rumah Tangga), sedangkan filter menyediakan **8 pilihan kategori** (di luar opsi "Semua"). Antarmuka menyediakan **5 pilihan kondisi**, dan data contoh saat ini memakai **3 kondisi unik** (Mulus 90%+, Seperti Baru, Layak Pakai).
 
 ## 5. Teknologi yang Digunakan
 
@@ -136,7 +138,9 @@ barter-yuk/                  # folder proyek (berisi index.html)
 │       ├── nintendo-switch-lite.svg
 │       └── rak-buku-kayu.svg
 ├── api/
-│   └── barang.php           # Endpoint JSON katalog (PHP + PDO MySQL) — satu-satunya berkas PHP yang diakses halaman
+│   ├── barang.php           # Endpoint JSON katalog (PHP + PDO MySQL) — satu-satunya berkas PHP yang diakses halaman
+│   ├── config.example.php   # Contoh konfigurasi DB alternatif (tanpa kredensial; tidak dipakai alur utama)
+│   └── koneksi-db.php       # Legacy/tidak dipakai — helper koneksi lama (digantikan `koneksi.php` root)
 ├── database/
 │   ├── schema.sql           # Migrasi tabel `barang` (idempoten, tanpa DROP)
 │   ├── seed_katalog.sql     # Seed 6 barang contoh (idempoten, aman diulang)
@@ -223,6 +227,8 @@ Perilaku yang diterapkan di `api/barang.php`:
 - `200` — data berhasil dikirim (termasuk saat hasil filter kosong, dengan `"data": []` dan `"total": 0`);
 - `405` — metode selain `GET` (mis. `POST`), disertai header `Allow: GET`;
 - `500` — bila konfigurasi database belum lengkap atau koneksi/query gagal. Klien menerima pesan JSON **generik** (`{"ok": false, "pesan": "..."}`); detail teknis (mis. pesan PDO) hanya dicatat ke log server melalui `error_log()`, tidak dibocorkan ke respons.
+- **Hardening parameter `kategori`:** nilai hanya diproses bila bertipe string (`is_string()`). Bila klien mengirim bentuk non-string, mis. `?kategori[]=Hobi`, parameter diabaikan dengan aman tanpa memicu peringatan *Array to string conversion*, sehingga respons tetap JSON valid.
+- **Anti-kebocoran galat:** `display_errors` dan `html_errors` dimatikan di endpoint, sehingga pesan/notice PHP tidak pernah tercetak ke body respons API.
 
 Nilai `"pesan"` pada respons sukses kini berbunyi `"Data katalog berhasil dimuat dari database."` karena data berasal dari tabel `barang` di MySQL, bukan lagi array statis di berkas PHP.
 
@@ -319,7 +325,7 @@ Setiap draft disimpan sebagai objek dengan bentuk berikut:
 | CSS styling & layout | `style.css`: design token di `:root`, CSS Grid (`.grid-container`, `.stats`, `.form-row`), Flexbox (`.header-inner`, `.toolbar`, `.card-footer`, `.modal-actions`) | Terbukti |
 | Responsive design | `@media (max-width: 720px)` dan penggunaan `clamp()` untuk ukuran teks | Terbukti sebagian (baru satu breakpoint) |
 | Tata letak gambar | Kotak media kartu `aspect-ratio: 4 / 3` + `object-fit: cover`; gambar diposisikan absolut agar tidak mengubah tinggi kartu; placeholder ikon saat gambar gagal dimuat | Terbukti |
-| Tidak ada horizontal overflow | Diuji pada lebar 320, 375, 768, 1024, dan 1440 piksel | Terbukti (pengujian browser) |
+| Tidak ada horizontal overflow | Diuji lewat emulasi ukuran viewport (320–1440 px); belum diverifikasi ulang pada perangkat/browser nyata | Terbukti sebagian (emulasi viewport) |
 | Aksesibilitas dasar | Skip link, `:focus-visible`, `prefers-reduced-motion`, label form, `aria-live`, `aria-pressed`, focus trap modal, kontras teks diperbaiki | Terbukti sebagian (belum diuji dengan screen reader) |
 
 ### Week 3 — JavaScript, DOM, dan event
@@ -353,14 +359,15 @@ Setiap draft disimpan sebagai objek dengan bentuk berikut:
 
 | Materi | Implementasi (semua di `api/barang.php`) | Status |
 | --- | --- | --- |
-| Variabel | `$databaseBarang`, `$metode`, `$filterKategori`, `$daftarBarang`, `$isiRespons`, `$json` | Terbukti |
-| Function | `hitungTotalBarang()`, `timestampJamLalu()`, `kirimJSON()` — semuanya dipanggil | Terbukti |
-| Conditional | `if ($metode !== "GET")` → HTTP 405, `elseif (hitungTotalBarang(...) === 0)` → data kosong, `else` → data tersedia, plus pemeriksaan gagal `json_encode()` → HTTP 500 | Terbukti |
-| Loop | `foreach ($databaseBarang as $barang)` untuk menyusun data dan menyaring kategori | Terbukti |
-| Pemrosesan data di server | Menambahkan field `waktu` (timestamp) dan menyaring berdasarkan parameter `?kategori=` | Terbukti |
+| Variabel | `$metode`, `$kategoriMentah`, `$filterKategori`, `$parameter`, `$pdo`, `$sql`, `$stmt`, `$baris`, `$daftarBarang`, `$total` | Terbukti |
+| Function | `kirimJSON()` — mengirim respons JSON beserta kode status HTTP | Terbukti |
+| Conditional | `if ($metode !== "GET")` → HTTP 405; `if ($total === 0)` → respons data kosong; selain itu → data tersedia | Terbukti |
+| Loop | `foreach ($baris as $r)` untuk memetakan tiap baris database ke field yang dipakai frontend | Terbukti |
+| Pemrosesan data di server | Menyusun field `waktu` (epoch milidetik dari kolom `dibuat_pada`) dan menyaring berdasarkan parameter `?kategori=` | Terbukti |
+| Penanganan galat | `try { … } catch (Throwable $galat)` menangkap galat koneksi/query; detail teknis dicatat lewat `error_log()`, sedangkan klien menerima JSON **generik** (`500`) | Terbukti |
 | Output JSON | `header("Content-Type: application/json; charset=utf-8")` + `json_encode()` | Terbukti |
 | PHP menghasilkan HTML dinamis | Tidak ada — tampilan tetap `index.html` statis dan data diambil lewat Fetch API | Belum diterapkan |
-| Koneksi database (MySQL/PDO) | Dipakai: `api/barang.php` membaca tabel `barang` lewat PDO + prepared statement (baca-saja). Detail di [bagian 12](#12-integrasi-mysql-pdo) | Diterapkan; jalur sukses belum dijalankan di lingkungan ini (kredensial DB belum tersedia) |
+| Koneksi database (MySQL/PDO) | Dipakai: `api/barang.php` membaca tabel `barang` lewat PDO + prepared statement (baca-saja). Detail di [bagian 12](#12-integrasi-mysql-pdo) | Diterapkan dan teruji (HTTP `200`, memuat 6 barang) |
 | Penyimpanan data ke server (POST) / sesi login | Tidak ada — endpoint hanya melayani `GET` | Belum diterapkan |
 | `koneksi.php` | Konfigurasi + koneksi PDO MySQL; kredensial dari environment variable / `.env` (tanpa rahasia di kode); di-*include* oleh `api/barang.php` | Terpakai |
 
@@ -370,7 +377,7 @@ Setiap draft disimpan sebagai objek dengan bentuk berikut:
 - **Browser lain:** pengujian otomatis dilakukan pada Chrome versi headless; Safari dan Firefox belum diuji.
 - **Perangkat asli:** pengujian responsif memakai emulasi ukuran viewport, bukan perangkat fisik.
 - **Screen reader:** atribut ARIA dan urutan fokus diperiksa lewat pengujian DOM, bukan dengan pembaca layar sungguhan.
-- **Jalur HTTP 500** pada `api/barang.php` kini benar-benar dipicu saat pengujian tanpa kredensial DB (respons JSON aman, tanpa kebocoran kredensial/DSN); **jalur sukses (HTTP 200 dari MySQL) belum dijalankan** karena kredensial database belum tersedia di lingkungan pengujian ini.
+- **Jalur HTTP 500** pada `api/barang.php` diuji dengan mensimulasikan kegagalan koneksi (respons JSON aman, tanpa kebocoran kredensial/DSN); **jalur sukses (HTTP 200 dari MySQL) sudah teruji** dan memuat 6 barang dari tabel `barang`.
 
 ## 11. Batasan Aplikasi Saat Ini
 
@@ -396,7 +403,7 @@ Katalog kini dibaca dari **database MySQL** melalui **PDO** dengan prepared stat
 | `database/seed_katalog.sql` | Mengisi 6 barang contoh (idempoten; aman diulang) |
 | `.env.example` | Contoh konfigurasi lokal tanpa kredensial (disalin menjadi `.env`) |
 
-> **Status pengujian (jujur):** di lingkungan ini sudah **diuji** — pemeriksaan sintaks (`php -l`), pemuatan konfigurasi `.env`, respons metode salah (`405`), dan respons gagal-koneksi (`500`, tanpa kebocoran kredensial). **Belum dijalankan:** jalur sukses (HTTP `200` membaca 6 barang dari MySQL), karena kredensial akun `barteryuk_app` belum tersedia untuk shell pengujian — bukan karena kodenya gagal.
+> **Status pengujian (jujur):** di lingkungan ini sudah **diuji** — pemeriksaan sintaks (`php -l`), pemuatan konfigurasi `.env`, respons metode salah (`405`), respons gagal-koneksi (`500`, tanpa kebocoran kredensial), dan **jalur sukses (HTTP `200` membaca 6 barang dari tabel `barang` di MySQL)**. Diverifikasi juga bahwa parameter `kategori` bertipe non-string (mis. `?kategori[]=Hobi`) tidak memicu peringatan PHP dan tetap menghasilkan JSON valid. Pengujian browser visual (mis. overflow tata letak) belum diverifikasi ulang di lingkungan ini.
 
 ### 12.1 Konfigurasi koneksi (tanpa rahasia di Git)
 
