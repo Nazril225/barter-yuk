@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Ilustrasi rak buku kayu minimalis">
+  <!-- Aset ilustrasi orisinal BarterYuk! (bebas dipakai & didistribusikan) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fef3c7"/>
+      <stop offset="0.5" stop-color="#fffbeb"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d97706"/>
+      <stop offset="1" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <ellipse cx="400" cy="512" rx="230" ry="24" fill="#78350f" opacity="0.12"/>
+
+  <!-- Rangka rak -->
+  <rect x="170" y="130" width="460" height="352" rx="16" fill="url(#wood)"/>
+  <rect x="192" y="152" width="416" height="308" rx="10" fill="#fef9e7"/>
+
+  <!-- Papan rak -->
+  <rect x="192" y="300" width="416" height="16" fill="#b45309"/>
+  <rect x="300" y="152" width="14" height="308" fill="#b45309"/>
+
+  <!-- Buku rak atas -->
+  <g>
+    <rect x="212" y="196" width="26" height="104" rx="5" fill="#2563eb"/>
+    <rect x="244" y="212" width="22" height="88" rx="5" fill="#f59e0b"/>
+    <rect x="272" y="184" width="24" height="116" rx="5" fill="#0f766e"/>
+    <!-- pot bunga -->
+    <path d="M332 250h44l-8 50h-28z" fill="#dc2626"/>
+    <path d="M354 250c-16-18-2-40 0-40s16 22 0 40z" fill="#22c55e"/>
+  </g>
+
+  <!-- Buku rak bawah -->
+  <g>
+    <rect x="326" y="344" width="26" height="116" rx="5" fill="#7c3aed"/>
+    <rect x="358" y="360" width="22" height="100" rx="5" fill="#db2777"/>
+    <rect x="386" y="330" width="26" height="130" rx="5" fill="#2563eb"/>
+    <rect x="418" y="356" width="22" height="104" rx="5" fill="#f59e0b"/>
+    <rect x="446" y="344" width="26" height="116" rx="5" fill="#0f766e"/>
+    <!-- buku miring -->
+    <g transform="rotate(-16 520 420)">
+      <rect x="500" y="344" width="26" height="116" rx="5" fill="#dc2626"/>
+    </g>
+    <rect x="540" y="368" width="22" height="92" rx="5" fill="#334155"/>
+    <rect x="568" y="352" width="24" height="108" rx="5" fill="#16a34a"/>
+  </g>
+
+  <!-- Kaki rak -->
+  <rect x="196" y="482" width="20" height="26" rx="6" fill="#78350f"/>
+  <rect x="584" y="482" width="20" height="26" rx="6" fill="#78350f"/>
+</svg>

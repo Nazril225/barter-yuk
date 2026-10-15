@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BarterYuk! - Platform barter barang modern. Tukar barang yang tidak terpakai dengan yang kamu butuhkan, tanpa uang tunai.">
-    <title>BarterYuk! - Platform Barter Barang Modern</title>
+    <meta name="description" content="BarterYuk! - Marketplace barter & tukar tambah. Tukar barang yang tidak terpakai dengan yang kamu butuhkan, opsional menambah uang bila kedua pihak setuju.">
+    <title>BarterYuk! - Marketplace Barter &amp; Tukar Tambah</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,6 +22,7 @@
                 <ul>
                     <li><a href="#hero">Beranda</a></li>
                     <li><a href="#katalog">Katalog</a></li>
+                    <li><a href="#penawaran">Penawaran</a></li>
                     <li><a href="#tambah">Tambah Barang</a></li>
                 </ul>
             </nav>
@@ -32,11 +33,11 @@
         <!-- ============ HERO ============ -->
         <section id="hero" class="hero">
             <div class="container hero-inner">
-                <p class="hero-eyebrow">Platform Barter Barang #1 di Indonesia</p>
+                <p class="hero-eyebrow">Marketplace Barter &amp; Tukar Tambah</p>
                 <h1>Tukar Barangmu dengan yang Kamu Butuhkan</h1>
                 <p class="hero-text">
                     BarterYuk! menghubungkan pemilik barang untuk saling bertukar secara langsung.
-                    Modern, ramah lingkungan, dan hemat tanpa uang tunai.
+                    Barter murni barang dengan barang, atau tukar tambah dengan uang bila kedua pihak setuju.
                 </p>
 
                 <div class="hero-actions">
@@ -74,6 +75,12 @@
                         ↻ Muat Ulang Data
                     </button>
                 </header>
+
+                <!-- Peringatan nilai estimasi (dapat dinegosiasikan) -->
+                <p class="notice-banner" role="note">
+                    <span aria-hidden="true">ℹ️</span>
+                    <span>Nilai pada katalog adalah <strong>estimasi</strong> yang dapat dinegosiasikan — bukan harga transaksi final.</span>
+                </p>
 
                 <!-- Toolbar pencarian -->
                 <div class="toolbar">
@@ -182,7 +189,7 @@
 
                         <div class="form-group">
                             <label for="gambar-barang">URL Gambar (Opsional)</label>
-                            <input type="url" id="gambar-barang" name="gambar" placeholder="https://picsum.photos/id/1/600/400">
+                            <input type="url" id="gambar-barang" name="gambar" placeholder="https://contoh.com/foto-barang.jpg (opsional)">
                             <small class="error-text" data-error-for="gambar"></small>
                         </div>
 
@@ -203,6 +210,32 @@
                 </div>
             </div>
         </section>
+
+        <!-- ============ DRAFT PENAWARAN (Prototipe UI) ============ -->
+        <section id="penawaran" class="section">
+            <div class="container">
+                <header class="section-head">
+                    <div>
+                        <h2>Draft Penawaran (Prototipe)</h2>
+                        <p class="section-sub">Penawaran barter yang kamu susun tersimpan sebagai draft di perangkat ini — belum dikirim ke server.</p>
+                    </div>
+                    <button type="button" id="btn-hapus-draft" class="btn btn-outline" hidden>Hapus Semua Draft</button>
+                </header>
+
+                <p class="notice-banner notice-banner-proto" role="note">
+                    <span aria-hidden="true">🧪</span>
+                    <span>Draft di bawah <strong>bukan transaksi</strong>. Belum ada pengiriman ke server, validasi pihak kedua, maupun penyimpanan transaksi.</span>
+                </p>
+
+                <div id="draft-list" class="draft-list"></div>
+
+                <div id="draft-empty" class="empty-state" hidden>
+                    <span class="empty-emoji" aria-hidden="true">📝</span>
+                    <h3>Belum ada draft penawaran</h3>
+                    <p>Buka detail sebuah barang, lalu tekan “Ajukan Penawaran Barter” untuk menyusun penawaran.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="site-footer">
@@ -218,8 +251,11 @@
             <button type="button" class="close-btn" aria-label="Tutup detail">&times;</button>
 
             <div class="modal-media">
+                <span class="media-placeholder" aria-hidden="true">
+                    <span class="media-emoji" id="modal-emoji">📦</span>
+                    <small class="media-placeholder-text">Foto belum tersedia</small>
+                </span>
                 <img id="modal-gambar" class="modal-img" alt="" hidden>
-                <span class="modal-emoji" id="modal-emoji" aria-hidden="true">📦</span>
                 <span class="badge" id="modal-kondisi-badge"></span>
             </div>
 
@@ -232,15 +268,112 @@
                 <li><span>Pemilik</span><strong id="modal-pemilik"></strong></li>
                 <li><span>Lokasi</span><strong id="modal-lokasi"></strong></li>
                 <li><span>Estimasi Nilai</span><strong id="modal-nilai"></strong></li>
+                <li><span>Harga Transaksi Disepakati</span><strong id="modal-harga-disepakati">Belum ada</strong></li>
                 <li><span>Dipasang</span><strong id="modal-waktu"></strong></li>
                 <li><span>ID Barang</span><strong id="modal-id"></strong></li>
             </ul>
 
-            <p class="modal-note">Penawaran barter saat ini masih berupa simulasi dan belum dikirim ke server.</p>
+            <p class="modal-note">
+                <strong>Estimasi nilai</strong> adalah perkiraan yang dapat dinegosiasikan.
+                <strong>Harga transaksi disepakati</strong> baru ditetapkan bila kedua pihak menyetujui sebuah penawaran.
+                Fitur penawaran di bawah masih prototipe dan belum mengirim data ke server.
+            </p>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-primary" id="btn-ajukan-modal">Ajukan Penawaran Barter</button>
                 <button type="button" class="btn btn-danger" id="btn-hapus-modal">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODAL PENAWARAN BARTER (prototipe UI) ============ -->
+    <div id="modal-penawaran" class="modal" role="dialog" aria-modal="true" aria-labelledby="penawaran-judul" hidden>
+        <div class="modal-content modal-content-wide" role="document">
+            <button type="button" class="close-btn" id="close-penawaran" aria-label="Tutup formulir penawaran">&times;</button>
+
+            <header class="offer-head">
+                <span class="proto-badge">Prototipe UI</span>
+                <h3 id="penawaran-judul" class="modal-title">Ajukan Penawaran Barter</h3>
+                <p class="offer-sub">Tukar barangmu dengan barang ini. Uang tambahan bersifat opsional bila kedua pihak setuju.</p>
+            </header>
+
+            <!-- Barang tujuan (diminta) -->
+            <div class="offer-target">
+                <div class="offer-thumb">
+                    <span class="media-emoji" id="penawaran-target-emoji" aria-hidden="true">📦</span>
+                    <img id="penawaran-target-img" class="offer-thumb-img" alt="" hidden>
+                </div>
+                <div class="offer-target-info">
+                    <p class="offer-label">Barang yang kamu inginkan</p>
+                    <strong id="penawaran-target-nama">-</strong>
+                    <p class="offer-value">Estimasi nilai: <span id="penawaran-target-nilai">-</span></p>
+                </div>
+            </div>
+
+            <!-- Pilih barang sendiri -->
+            <div class="form-group">
+                <label for="penawaran-pilih">Barang yang kamu tawarkan</label>
+                <select id="penawaran-pilih">
+                    <option value="">-- Pilih barangmu --</option>
+                </select>
+                <small class="error-text" data-error-for="penawaran-pilih"></small>
+            </div>
+
+            <!-- Perbandingan nilai estimasi kedua barang -->
+            <div class="compare" id="penawaran-compare" hidden aria-live="polite">
+                <div class="compare-grid">
+                    <div class="compare-item">
+                        <span class="compare-label">Barangmu</span>
+                        <strong id="compare-nama-kamu">-</strong>
+                        <span class="compare-value" id="compare-nilai-kamu">-</span>
+                    </div>
+                    <div class="compare-item">
+                        <span class="compare-label">Barang tujuan</span>
+                        <strong id="compare-nama-target">-</strong>
+                        <span class="compare-value" id="compare-nilai-target">-</span>
+                    </div>
+                </div>
+                <p class="compare-balance" id="compare-selisih">-</p>
+            </div>
+
+            <!-- Opsi uang tambahan -->
+            <fieldset class="offer-cash">
+                <legend>Uang tambahan</legend>
+                <label class="offer-radio">
+                    <input type="radio" name="penawaran-uang" id="uang-tanpa" value="tanpa" checked>
+                    <span>Tanpa uang tambahan (tukar murni)</span>
+                </label>
+                <label class="offer-radio">
+                    <input type="radio" name="penawaran-uang" id="uang-dengan" value="dengan">
+                    <span>Dengan uang tambahan</span>
+                </label>
+            </fieldset>
+
+            <div class="form-group" id="penawaran-uang-wrap" hidden>
+                <label for="penawaran-uang">Nominal uang tambahan (Rp)</label>
+                <input type="number" id="penawaran-uang" min="0" step="50000" value="0">
+                <small class="error-text" data-error-for="penawaran-uang"></small>
+                <small class="field-hint" id="penawaran-arah"></small>
+            </div>
+
+            <!-- Tinjauan sebelum menyimpan -->
+            <div class="review" id="penawaran-review" aria-live="polite">
+                <h4 class="review-title">Tinjauan penawaran</h4>
+                <dl class="review-list" id="penawaran-review-list"></dl>
+            </div>
+
+            <p class="warn-note" role="note">
+                <span aria-hidden="true">⚠️</span>
+                <span>Nilai barang di atas hanyalah <strong>estimasi</strong> dan <strong>dapat dinegosiasikan</strong>. Harga transaksi final ditetapkan saat kedua pihak menyetujui penawaran.</span>
+            </p>
+
+            <p class="offer-proto-note" role="note">
+                <span aria-hidden="true">🧪</span>
+                <span>Fitur ini masih <strong>prototipe</strong>. Penawaran <strong>belum dikirim ke server</strong> dan belum menjadi transaksi. Draft hanya tersimpan di perangkat ini.</span>
+            </p>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" id="penawaran-simpan">Simpan Draft Penawaran</button>
             </div>
         </div>
     </div>

@@ -1,0 +1,36 @@
+# ============================================================
+# BarterYuk! — .gitignore
+# Tujuan: mencegah berkas rahasia/konfigurasi lokal ikut ter-commit.
+# Catatan: folder aset gambar (assets/) TIDAK diabaikan.
+# ============================================================
+
+# --- Rahasia & konfigurasi database lokal (JANGAN di-commit) ---
+# Salin api/config.example.php menjadi api/config.local.php lalu isi kredensial lokal.
+api/config.local.php
+*.local.php
+*.local
+
+# --- Variabel lingkungan ---
+.env
+.env.*
+!.env.example
+
+# --- Berkas sistem operasi ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.code-workspace
+
+# --- Log & cache ---
+*.log

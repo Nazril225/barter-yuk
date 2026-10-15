@@ -50,6 +50,17 @@
     box-sizing: border-box;
 }
 
+/* ---------- Atribut `hidden` ----------
+   Elemen dengan atribut `hidden` WAJIB tidak tampil. Aturan kelas seperti
+   .skeleton-grid, .btn, atau .form-group mendefinisikan `display`, sehingga
+   tanpa `!important` mereka menang atas gaya bawaan browser untuk [hidden].
+   Akibatnya elemen yang seharusnya disembunyikan (mis. skeleton loading di
+   #loading, tombol #btn-clear-search / #btn-hapus-draft, atau #penawaran-uang-wrap)
+   tetap terlihat. Aturan ini memastikan atribut `hidden` selalu mengalah. */
+[hidden] {
+    display: none !important;
+}
+
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 90px;
@@ -566,17 +577,43 @@ a {
     box-shadow: var(--shadow-lg);
 }
 
+/* Kotak media kartu: rasio tetap 4:3 agar semua gambar konsisten.
+   Gambar diposisikan absolut supaya TIDAK bisa memperbesar baris grid
+   (sebelumnya baris grid ikut setinggi gambar, sehingga gambar terpotong). */
 .card-media {
     position: relative;
     display: grid;
     place-items: center;
-    height: 152px;
+    aspect-ratio: 4 / 3;
     font-size: 3rem;
     background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 55%, #fef3c7 100%);
     overflow: hidden;
 }
 
+/* Placeholder selalu ada di belakang gambar (tampil saat gambar belum/gagal dimuat) */
+.media-placeholder {
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    padding: 12px;
+    text-align: center;
+}
+
+.media-emoji {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.media-placeholder-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--slate-500);
+}
+
 .card-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -867,17 +904,15 @@ a {
     animation: popIn 0.28s both;
 }
 
+/* Kotak media modal: rasio tetap 16:9, gambar menutupi area */
 .modal-media {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 18px 22px;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
     margin-bottom: 18px;
     border-radius: var(--radius);
     background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 55%, #fef3c7 100%);
-    min-height: 120px;
     overflow: hidden;
 }
 
@@ -888,23 +923,14 @@ a {
     height: 100%;
     object-fit: cover;
     object-position: center;
-    opacity: 0.92;
+    opacity: 0.96;
 }
 
 .modal-media .badge {
-    position: relative;
+    position: absolute;
+    top: 12px;
+    right: 12px;
     z-index: 1;
-    margin-left: auto;
-    align-self: flex-start;
-}
-
-.modal-emoji {
-    position: relative;
-    z-index: 1;
-}
-
-.modal-emoji {
-    font-size: 2.8rem;
 }
 
 .close-btn {
@@ -1051,6 +1077,398 @@ body.modal-open {
 }
 
 /* ==========================================================================
+   NILAI ESTIMASI (banner + kartu)
+   ========================================================================== */
+.notice-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    border: 1px solid #fde68a;
+    border-left: 4px solid var(--amber-500);
+    border-radius: var(--radius);
+    background-color: #fffbeb;
+    color: #92400e;
+    font-size: 0.88rem;
+}
+
+.notice-banner-proto {
+    border-color: #bfdbfe;
+    border-left-color: var(--blue-500);
+    background-color: var(--blue-50);
+    color: var(--blue-800);
+}
+
+.card-nilai {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 2px;
+    padding: 8px 12px;
+    border: 1px solid var(--slate-100);
+    border-radius: var(--radius-sm);
+    background-color: var(--slate-50);
+}
+
+.nilai-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+}
+
+.nilai-angka {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--blue-800);
+    text-align: right;
+}
+
+/* ==========================================================================
+   MODAL PENAWARAN BARTER (prototipe UI)
+   ========================================================================== */
+.modal-content-wide {
+    max-width: 560px;
+}
+
+.offer-head {
+    margin-bottom: 16px;
+}
+
+.offer-sub {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: var(--slate-500);
+}
+
+.proto-badge {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background-color: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.proto-badge-sm {
+    margin-bottom: 0;
+    padding: 2px 8px;
+    font-size: 0.62rem;
+}
+
+.offer-target {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius);
+    background-color: var(--slate-50);
+}
+
+.offer-thumb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 66px;
+    width: 66px;
+    height: 66px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 55%, #fef3c7 100%);
+    overflow: hidden;
+}
+
+.offer-thumb .media-emoji {
+    font-size: 1.8rem;
+}
+
+.offer-thumb-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.offer-target-info {
+    min-width: 0;
+}
+
+.offer-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+}
+
+.offer-target-info strong {
+    display: block;
+    color: var(--blue-900);
+    line-height: 1.3;
+}
+
+.offer-value {
+    font-size: 0.85rem;
+    color: var(--slate-500);
+}
+
+.compare {
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius);
+    background-color: var(--white);
+}
+
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.compare-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background-color: var(--slate-50);
+}
+
+.compare-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+}
+
+.compare-item strong {
+    font-size: 0.9rem;
+    color: var(--blue-900);
+    line-height: 1.3;
+}
+
+.compare-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--blue-600);
+}
+
+.compare-balance {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--slate-200);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--slate-700);
+}
+
+.compare-balance.is-unknown {
+    font-weight: 600;
+    color: var(--slate-500);
+}
+
+.offer-cash {
+    margin-bottom: 16px;
+    padding: 12px 14px 14px;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius);
+}
+
+.offer-cash legend {
+    padding-inline: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--slate-700);
+}
+
+.offer-radio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.offer-radio input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--blue-600);
+}
+
+.field-hint {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--blue-600);
+}
+
+.review {
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px dashed var(--blue-500);
+    border-radius: var(--radius);
+    background-color: var(--blue-50);
+}
+
+.review-title {
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--blue-800);
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-top: 1px solid rgba(37, 99, 235, 0.14);
+}
+
+.review-list > div:first-child {
+    border-top: none;
+}
+
+.review-list dt {
+    flex: 0 0 auto;
+    color: var(--slate-500);
+    font-size: 0.82rem;
+}
+
+.review-list dd {
+    min-width: 0;
+    color: var(--slate-900);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.warn-note,
+.offer-proto-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.warn-note {
+    border: 1px solid #fde68a;
+    background-color: #fffbeb;
+    color: #92400e;
+}
+
+.offer-proto-note {
+    border: 1px solid var(--slate-200);
+    background-color: var(--slate-50);
+    color: var(--slate-500);
+}
+
+/* ==========================================================================
+   DRAFT PENAWARAN
+   ========================================================================== */
+.draft-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.draft-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    background-color: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.draft-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.draft-waktu {
+    font-size: 0.76rem;
+    color: var(--slate-500);
+}
+
+.draft-exchange {
+    font-size: 0.98rem;
+    color: var(--slate-700);
+}
+
+.draft-exchange strong {
+    color: var(--blue-900);
+}
+
+.draft-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.draft-info > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-top: 1px solid var(--slate-100);
+    font-size: 0.82rem;
+}
+
+.draft-info > div:first-child {
+    border-top: none;
+}
+
+.draft-info dt {
+    color: var(--slate-500);
+}
+
+.draft-info dd {
+    color: var(--slate-900);
+    font-weight: 700;
+    text-align: right;
+}
+
+.draft-card .btn {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.82rem;
+}
+
+/* ==========================================================================
    FOOTER
    ========================================================================== */
 .site-footer {
@@ -1188,6 +1606,18 @@ body.modal-open {
 
     .modal-content {
         max-width: 100%;
+    }
+
+    .compare-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .offer-target {
+        align-items: flex-start;
+    }
+
+    .draft-list {
+        grid-template-columns: 1fr;
     }
 
     .toast-container {

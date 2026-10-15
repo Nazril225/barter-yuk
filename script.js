@@ -10,6 +10,7 @@
    -------------------------------------------------------------------------- */
 const API_URL = "api/barang.php"; // Endpoint PHP yang mengembalikan JSON
 const STORAGE_KEY = "barteryuk.barang.v1"; // Kunci data pengguna di LocalStorage
+const DRAFT_KEY = "barteryuk.penawaran.v1"; // Kunci draft penawaran (LOKAL, bukan transaksi)
 
 // Kategori + ikon representatif (dipakai untuk kartu & chip filter)
 const KATEGORI = [
@@ -24,6 +25,17 @@ const KATEGORI = [
 ];
 
 const DAFTAR_KONDISI = ["Segel / Baru", "Seperti Baru", "Mulus 90%+", "Layak Pakai", "Ada Minus"];
+
+// Gambar aset lokal untuk data contoh (agar katalog tetap tampil tanpa internet).
+// Dipakai juga untuk memperbarui gambar lama yang masih menunjuk ke URL eksternal.
+const GAMBAR_SEED = {
+    "seed-1": "assets/images/macbook-air-m1.svg",
+    "seed-2": "assets/images/gitar-akustik.svg",
+    "seed-3": "assets/images/sepeda-lipat.svg",
+    "seed-4": "assets/images/buku-pemrograman.svg",
+    "seed-5": "assets/images/nintendo-switch-lite.svg",
+    "seed-6": "assets/images/rak-buku-kayu.svg",
+};
 
 // Data awal kini disediakan oleh API PHP (api/barang.php) dan dipakai sebagai
 // data awal hanya saat belum ada data tersimpan di LocalStorage pengguna.
@@ -40,6 +52,8 @@ const state = {
     idAktifModal: null,  // id barang yang sedang dibuka di modal
     sumberData: null,    // "api" | "lokal" | "lokal-fallback" | null
     gagalMemuat: true,   // true bila memuat data gagal dan tidak ada data lokal
+    idTargetPenawaran: null, // id barang tujuan saat menyusun penawaran barter
+    draftPenawaran: [],      // draft penawaran (lokal, BUKAN transaksi)
 };
 
 /* --------------------------------------------------------------------------
@@ -86,8 +100,34 @@ const el = {
     modalId: document.querySelector("#modal-id"),
     btnAjukan: document.querySelector("#btn-ajukan-modal"),
     btnHapus: document.querySelector("#btn-hapus-modal"),
-    closeBtn: document.querySelector(".close-btn"),
+    closeBtn: document.querySelector("#modal-detail .close-btn"),
+    modalHargaDisepakati: document.querySelector("#modal-harga-disepakati"),
     toast: document.querySelector("#toast-container"),
+    // --- Modal & seksi penawaran barter (prototipe) ---
+    modalPenawaran: document.querySelector("#modal-penawaran"),
+    closePenawaran: document.querySelector("#close-penawaran"),
+    penawaranSection: document.querySelector("#penawaran"),
+    penawaranTargetNama: document.querySelector("#penawaran-target-nama"),
+    penawaranTargetNilai: document.querySelector("#penawaran-target-nilai"),
+    penawaranTargetEmoji: document.querySelector("#penawaran-target-emoji"),
+    penawaranTargetImg: document.querySelector("#penawaran-target-img"),
+    penawaranPilih: document.querySelector("#penawaran-pilih"),
+    penawaranCompare: document.querySelector("#penawaran-compare"),
+    compareNamaKamu: document.querySelector("#compare-nama-kamu"),
+    compareNilaiKamu: document.querySelector("#compare-nilai-kamu"),
+    compareNamaTarget: document.querySelector("#compare-nama-target"),
+    compareNilaiTarget: document.querySelector("#compare-nilai-target"),
+    compareSelisih: document.querySelector("#compare-selisih"),
+    uangTanpa: document.querySelector("#uang-tanpa"),
+    uangDengan: document.querySelector("#uang-dengan"),
+    penawaranUangWrap: document.querySelector("#penawaran-uang-wrap"),
+    penawaranUang: document.querySelector("#penawaran-uang"),
+    penawaranArah: document.querySelector("#penawaran-arah"),
+    penawaranReviewList: document.querySelector("#penawaran-review-list"),
+    penawaranSimpan: document.querySelector("#penawaran-simpan"),
+    draftList: document.querySelector("#draft-list"),
+    draftEmpty: document.querySelector("#draft-empty"),
+    btnHapusDraft: document.querySelector("#btn-hapus-draft"),
     stat: {
         total: document.querySelector("#stat-total"),
         kategori: document.querySelector("#stat-kategori"),
@@ -121,6 +161,13 @@ function formatRupiah(angka) {
         currency: "IDR",
         maximumFractionDigits: 0,
     }).format(nilai);
+}
+
+// Teks nilai ESTIMASI pada kartu/detail: angka Rupiah, atau penanda bila belum diisi.
+// Dibedakan dari harga transaksi disepakati yang hanya ada setelah deal.
+function teksNilai(angka) {
+    const nilai = Number(angka) || 0;
+    return nilai > 0 ? formatRupiah(nilai) : "Belum diisi";
 }
 
 // Format waktu relatif (misal "2 jam lalu")
@@ -168,11 +215,26 @@ function muatDariStorage() {
         const tersimpan = localStorage.getItem(STORAGE_KEY);
         if (!tersimpan) return null;
         const data = JSON.parse(tersimpan);
-        return Array.isArray(data) ? data : null;
+        return Array.isArray(data) ? normalisasiGambar(data) : null;
     } catch (error) {
         console.error("Data lokal rusak, memakai data awal.", error);
         return null;
     }
+}
+
+// Menyeragamkan gambar data contoh: barang bawaan (id "seed-*") memakai aset
+// lokal bila gambar tersimpan masih kosong atau masih menunjuk URL eksternal.
+// Barang tambahan pengguna tidak diubah.
+function normalisasiGambar(data) {
+    data.forEach((barang) => {
+        const asetLokal = barang && GAMBAR_SEED[barang.id];
+        if (!asetLokal) return;
+        const gambarLama = typeof barang.gambar === "string" ? barang.gambar : "";
+        if (gambarLama === "" || /^https?:\/\//i.test(gambarLama)) {
+            barang.gambar = asetLokal;
+        }
+    });
+    return data;
 }
 
 /* --------------------------------------------------------------------------
@@ -317,23 +379,33 @@ function templateKartu(barang) {
     const deskripsi = barang.deskripsi
         ? escapeHTML(barang.deskripsi)
         : "Belum ada deskripsi untuk barang ini.";
+    // Placeholder selalu dirender; gambar (bila ada) menutupinya setelah termuat.
+    // Aset lokal dimuat langsung (eager) karena sudah tersedia di server;
+    // gambar dari URL eksternal dimuat saat dibutuhkan (lazy) agar hemat kuota.
+    const gambarLokal = typeof barang.gambar === "string" && !/^https?:\/\//i.test(barang.gambar);
     const imgHtml = barang.gambar
-        ? `<img class="card-img" src="${escapeHTML(barang.gambar)}" alt="${escapeHTML(barang.nama)}" loading="lazy">`
+        ? `<img class="card-img" src="${escapeHTML(barang.gambar)}" alt="${escapeHTML(barang.nama)}" loading="${gambarLokal ? "eager" : "lazy"}" decoding="async">`
         : "";
-    const placeholderStyle = barang.gambar ? "style='display:none'" : "";
 
     return `
         <article class="card" data-id="${escapeHTML(barang.id)}" tabindex="0" role="button"
                  aria-label="Lihat detail ${escapeHTML(barang.nama)}">
             <div class="card-media">
+                <span class="media-placeholder" aria-hidden="true">
+                    <span class="media-emoji">${ikonKategori(barang.kategori)}</span>
+                    <small class="media-placeholder-text">Foto belum tersedia</small>
+                </span>
                 ${imgHtml}
-                <span aria-hidden="true" ${placeholderStyle}>${ikonKategori(barang.kategori)}</span>
                 <span class="badge">${escapeHTML(barang.kondisi)}</span>
             </div>
             <div class="card-body">
                 <span class="card-category">${escapeHTML(barang.kategori)}</span>
                 <h3>${escapeHTML(barang.nama)}</h3>
                 <p class="card-desc">${deskripsi}</p>
+                <div class="card-nilai">
+                    <span class="nilai-label">Estimasi nilai</span>
+                    <span class="nilai-angka">${escapeHTML(teksNilai(barang.nilai))}</span>
+                </div>
             </div>
             <div class="card-footer">
                 <span class="card-owner">👤 ${escapeHTML(barang.pemilik)} • ${escapeHTML(barang.lokasi || "-")}</span>
@@ -376,17 +448,16 @@ function renderDaftarBarang() {
         (sumber ? ` <span class="source-note">Sumber data: ${escapeHTML(sumber)}</span>` : "");
 }
 
-// Jika gambar gagal dimuat, ganti dengan ikon kategori (tanpa handler inline)
+// Jika gambar gagal dimuat, sembunyikan gambar sehingga placeholder
+// (ikon kategori + "Foto belum tersedia") yang ada di belakangnya terlihat.
 function pasangFallbackGambar() {
     if (!el.itemList) return;
     el.itemList.querySelectorAll(".card-img").forEach((img) => {
-        const tampilkanIkon = () => {
+        const tampilkanPlaceholder = () => {
             img.style.display = "none";
-            const ikon = img.nextElementSibling;
-            if (ikon) ikon.style.display = "grid";
         };
-        img.addEventListener("error", tampilkanIkon, { once: true });
-        if (img.complete && img.naturalWidth === 0) tampilkanIkon();
+        img.addEventListener("error", tampilkanPlaceholder, { once: true });
+        if (img.complete && img.naturalWidth === 0) tampilkanPlaceholder();
     });
 }
 
@@ -430,16 +501,27 @@ function bukaModal(id) {
 
     el.modalEmoji.textContent = ikonKategori(barang.kategori);
     if (el.modalGambar) {
+        // Reset: sembunyikan gambar agar placeholder tampil sampai gambar siap.
+        el.modalGambar.onload = null;
+        el.modalGambar.onerror = null;
+        el.modalGambar.hidden = true;
+        el.modalGambar.removeAttribute("src"); // jangan kirim request ke halaman kosong
+        el.modalGambar.alt = "";
+
         if (barang.gambar) {
-            el.modalGambar.src = barang.gambar;
             el.modalGambar.alt = barang.nama;
-            el.modalGambar.hidden = false;
-            el.modalEmoji.style.display = "none";
-        } else {
-            el.modalGambar.removeAttribute("src"); // jangan kirim request ke halaman kosong
-            el.modalGambar.alt = "";
-            el.modalGambar.hidden = true;
-            el.modalEmoji.style.display = "grid";
+            el.modalGambar.onload = () => {
+                el.modalGambar.hidden = false;
+            };
+            el.modalGambar.onerror = () => {
+                // Gambar gagal dimuat -> tampilkan placeholder (ikon kategori)
+                el.modalGambar.hidden = true;
+            };
+            el.modalGambar.src = barang.gambar;
+            // Gambar dari cache bisa langsung selesai tanpa memicu onload.
+            if (el.modalGambar.complete && el.modalGambar.naturalWidth > 0) {
+                el.modalGambar.hidden = false;
+            }
         }
     }
     el.modalNama.textContent = barang.nama;
@@ -449,6 +531,7 @@ function bukaModal(id) {
     el.modalPemilik.textContent = barang.pemilik;
     el.modalLokasi.textContent = barang.lokasi || "-";
     el.modalNilai.textContent = formatRupiah(barang.nilai);
+    if (el.modalHargaDisepakati) el.modalHargaDisepakati.textContent = "Belum ada";
     el.modalWaktu.textContent = waktuRelatif(barang.waktu);
     if (el.modalId) el.modalId.textContent = barang.id;
 
@@ -457,11 +540,372 @@ function bukaModal(id) {
     el.closeBtn.focus();
 }
 
-function tutupModal() {
+// kembalikanFokus=false dipakai saat modal detail ditutup untuk membuka modal penawaran,
+// agar fokus tidak "melompat" ke tombol di dalam modal yang akan disembunyikan.
+function tutupModal(kembalikanFokus = true) {
     el.modal.hidden = true;
-    document.body.classList.remove("modal-open");
+    if (!el.modalPenawaran || el.modalPenawaran.hidden) {
+        document.body.classList.remove("modal-open");
+    }
     state.idAktifModal = null;
-    if (elemenFokusTerakhir) elemenFokusTerakhir.focus();
+    if (kembalikanFokus && elemenFokusTerakhir) elemenFokusTerakhir.focus();
+}
+
+/* --------------------------------------------------------------------------
+   8b. PENAWARAN BARTER (prototipe UI — BELUM terhubung ke server)
+   --------------------------------------------------------------------------
+   Semua nilai di sini adalah ESTIMASI yang dapat dinegosiasikan. Penawaran
+   belum dikirim ke mana pun dan belum menjadi transaksi; hanya disimpan
+   sebagai DRAFT di LocalStorage perangkat pengguna.
+   -------------------------------------------------------------------------- */
+
+// Tahan fokus (Tab) agar tetap berputar di dalam dialog yang aktif.
+function pasangPerangkapFokus(modalEl) {
+    if (!modalEl) return;
+    modalEl.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab") return;
+
+        const kandidat = modalEl.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const daftarFokus = Array.from(kandidat).filter(
+            (node) => !node.disabled && node.offsetParent !== null
+        );
+        if (daftarFokus.length === 0) return;
+
+        const pertama = daftarFokus[0];
+        const terakhir = daftarFokus[daftarFokus.length - 1];
+
+        if (event.shiftKey && document.activeElement === pertama) {
+            event.preventDefault();
+            terakhir.focus();
+        } else if (!event.shiftKey && document.activeElement === terakhir) {
+            event.preventDefault();
+            pertama.focus();
+        }
+    });
+}
+
+function muatDraftPenawaran() {
+    try {
+        const tersimpan = localStorage.getItem(DRAFT_KEY);
+        if (!tersimpan) return [];
+        const data = JSON.parse(tersimpan);
+        return Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error("Draft penawaran rusak, dimulai dari daftar kosong.", error);
+        return [];
+    }
+}
+
+function simpanDraftKeStorage() {
+    try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(state.draftPenawaran));
+    } catch (error) {
+        console.error("Gagal menyimpan draft penawaran:", error);
+        tampilkanToast("Draft gagal disimpan di perangkat ini.", "error");
+    }
+}
+
+function tampilkanErrorPenawaran(id, pesan) {
+    const field = document.getElementById(id);
+    const pesanEl = document.querySelector(`[data-error-for="${id}"]`);
+    if (pesanEl) pesanEl.textContent = pesan || "";
+    if (field) field.classList.toggle("is-invalid", Boolean(pesan));
+}
+
+// Hitung perbandingan nilai estimasi: barang yang ditawarkan vs barang tujuan.
+// selisih = nilai target - nilai diri sendiri (>0 artinya kamu perlu menambah uang).
+function hitungPerbandingan() {
+    const target = state.barang.find((b) => b.id === state.idTargetPenawaran) || null;
+    const idPilih = el.penawaranPilih ? el.penawaranPilih.value : "";
+    const ditawarkan = state.barang.find((b) => b.id === idPilih) || null;
+
+    const nTarget = target ? Number(target.nilai) || 0 : 0;
+    const nKamu = ditawarkan ? Number(ditawarkan.nilai) || 0 : 0;
+    const lengkap = Boolean(target) && Boolean(ditawarkan) && nTarget > 0 && nKamu > 0;
+
+    return { target, ditawarkan, selisih: lengkap ? nTarget - nKamu : null, lengkap };
+}
+
+function modeUangAktif() {
+    return el.uangDengan && el.uangDengan.checked ? "dengan" : "tanpa";
+}
+
+function perbaruiPerbandingan() {
+    if (!el.penawaranCompare) return;
+    const { target, ditawarkan, selisih, lengkap } = hitungPerbandingan();
+
+    if (!target || !ditawarkan) {
+        el.penawaranCompare.hidden = true;
+        if (el.penawaranArah) el.penawaranArah.textContent = "";
+        return;
+    }
+
+    el.penawaranCompare.hidden = false;
+    el.compareNamaKamu.textContent = ditawarkan.nama;
+    el.compareNilaiKamu.textContent = teksNilai(ditawarkan.nilai);
+    el.compareNamaTarget.textContent = target.nama;
+    el.compareNilaiTarget.textContent = teksNilai(target.nilai);
+
+    if (!lengkap) {
+        el.compareSelisih.className = "compare-balance is-unknown";
+        el.compareSelisih.textContent =
+            "Perkiraan selisih belum bisa dihitung karena salah satu nilai belum diisi. Negosiasikan secara manual.";
+        if (el.penawaranArah) el.penawaranArah.textContent = "Isi nominal manual bila ingin menambah uang.";
+        return;
+    }
+
+    el.compareSelisih.className = "compare-balance";
+    let arah;
+    if (selisih > 0) arah = "barang tujuan lebih tinggi — kamu dapat menambah uang";
+    else if (selisih < 0) arah = "barangmu lebih tinggi — pemilik barang tujuan dapat menambah uang";
+    else arah = "nilai estimasi seimbang";
+    el.compareSelisih.textContent = `Perkiraan selisih nilai: ${formatRupiah(Math.abs(selisih))} — ${arah}.`;
+
+    if (el.penawaranArah) {
+        if (selisih > 0) {
+            el.penawaranArah.textContent = `Saran: kamu menambah ± ${formatRupiah(selisih)} (bisa dinegosiasikan).`;
+        } else if (selisih < 0) {
+            el.penawaranArah.textContent = `Saran: pemilik barang tujuan menambah ± ${formatRupiah(Math.abs(selisih))} (bisa dinegosiasikan).`;
+        } else {
+            el.penawaranArah.textContent = "Nilai seimbang — uang tambahan tidak diperlukan.";
+        }
+    }
+}
+
+// Tampilkan/sembunyikan input nominal, lalu isi saran otomatis dari selisih.
+function sinkronUang() {
+    const mode = modeUangAktif();
+    if (el.penawaranUangWrap) el.penawaranUangWrap.hidden = mode !== "dengan";
+
+    if (mode === "dengan" && el.penawaranUang) {
+        const { selisih, lengkap } = hitungPerbandingan();
+        const kosong = !el.penawaranUang.value || Number(el.penawaranUang.value) === 0;
+        if (lengkap && selisih !== 0 && kosong) {
+            el.penawaranUang.value = String(Math.abs(selisih));
+        }
+    }
+}
+
+function barisTinjauan(label, nilai) {
+    return `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(nilai)}</dd></div>`;
+}
+
+function perbaruiTinjauan() {
+    if (!el.penawaranReviewList) return;
+    const { target, ditawarkan, selisih, lengkap } = hitungPerbandingan();
+    const mode = modeUangAktif();
+
+    const baris = [];
+    baris.push(barisTinjauan("Barangmu", ditawarkan ? ditawarkan.nama : "Belum dipilih"));
+    baris.push(barisTinjauan("Estimasi barangmu", ditawarkan ? teksNilai(ditawarkan.nilai) : "-"));
+    baris.push(barisTinjauan("Barang tujuan", target ? target.nama : "-"));
+    baris.push(barisTinjauan("Estimasi barang tujuan", target ? teksNilai(target.nilai) : "-"));
+    baris.push(
+        barisTinjauan(
+            "Perkiraan selisih nilai",
+            lengkap ? formatRupiah(Math.abs(selisih)) : "Belum bisa dihitung"
+        )
+    );
+
+    if (mode === "dengan") {
+        const jumlah = Number(el.penawaranUang.value) || 0;
+        let arah = "";
+        if (lengkap && selisih !== 0) arah = selisih > 0 ? "(dari kamu)" : "(dari pemilik barang tujuan)";
+        baris.push(barisTinjauan("Jenis", "Tukar + uang tambahan"));
+        baris.push(barisTinjauan("Uang tambahan", `${formatRupiah(jumlah)} ${arah}`.trim()));
+    } else {
+        baris.push(barisTinjauan("Jenis", "Tukar murni (tanpa uang)"));
+        baris.push(barisTinjauan("Uang tambahan", "Tidak ada"));
+    }
+
+    baris.push(barisTinjauan("Status", "Draft — belum dikirim ke server"));
+    el.penawaranReviewList.innerHTML = baris.join("");
+}
+
+// Isi dropdown "barang yang ditawarkan" dari katalog (semua barang kecuali target).
+function isiPilihanPenawaran(targetId) {
+    if (!el.penawaranPilih) return;
+    const opsi = state.barang
+        .filter((b) => b.id !== targetId)
+        .map(
+            (b) =>
+                `<option value="${escapeHTML(b.id)}">${escapeHTML(b.nama)} — ${escapeHTML(teksNilai(b.nilai))}</option>`
+        )
+        .join("");
+    el.penawaranPilih.innerHTML = `<option value="">-- Pilih barangmu --</option>${opsi}`;
+}
+
+function bukaPenawaran() {
+    const barang = state.barang.find((b) => b.id === state.idAktifModal);
+    if (!barang || !el.modalPenawaran) return;
+
+    state.idTargetPenawaran = barang.id;
+
+    // Tutup modal detail tanpa mengembalikan fokus ke dalamnya.
+    if (el.modal && !el.modal.hidden) tutupModal(false);
+
+    // Ringkasan barang tujuan
+    if (el.penawaranTargetNama) el.penawaranTargetNama.textContent = barang.nama;
+    if (el.penawaranTargetNilai) el.penawaranTargetNilai.textContent = teksNilai(barang.nilai);
+    if (el.penawaranTargetEmoji) el.penawaranTargetEmoji.textContent = ikonKategori(barang.kategori);
+    if (el.penawaranTargetImg) {
+        el.penawaranTargetImg.onload = null;
+        el.penawaranTargetImg.onerror = null;
+        el.penawaranTargetImg.hidden = true;
+        el.penawaranTargetImg.removeAttribute("src");
+        el.penawaranTargetImg.alt = "";
+        if (barang.gambar) {
+            el.penawaranTargetImg.alt = barang.nama;
+            el.penawaranTargetImg.onload = () => {
+                el.penawaranTargetImg.hidden = false;
+            };
+            el.penawaranTargetImg.onerror = () => {
+                el.penawaranTargetImg.hidden = true;
+            };
+            el.penawaranTargetImg.src = barang.gambar;
+            if (el.penawaranTargetImg.complete && el.penawaranTargetImg.naturalWidth > 0) {
+                el.penawaranTargetImg.hidden = false;
+            }
+        }
+    }
+
+    // Reset formulir penawaran setiap kali dibuka
+    isiPilihanPenawaran(barang.id);
+    if (el.penawaranPilih) el.penawaranPilih.value = "";
+    if (el.uangTanpa) el.uangTanpa.checked = true;
+    if (el.uangDengan) el.uangDengan.checked = false;
+    if (el.penawaranUang) el.penawaranUang.value = "0";
+    tampilkanErrorPenawaran("penawaran-pilih", "");
+    tampilkanErrorPenawaran("penawaran-uang", "");
+    perbaruiPerbandingan();
+    sinkronUang();
+    perbaruiTinjauan();
+
+    el.modalPenawaran.hidden = false;
+    document.body.classList.add("modal-open");
+    if (el.closePenawaran) el.closePenawaran.focus();
+}
+
+function tutupPenawaran() {
+    if (!el.modalPenawaran) return;
+    el.modalPenawaran.hidden = true;
+    if (!el.modal || el.modal.hidden) document.body.classList.remove("modal-open");
+
+    const id = state.idTargetPenawaran;
+    state.idTargetPenawaran = null;
+
+    // Kembalikan fokus ke kartu barang tujuan (bukan ke dalam modal yang tertutup).
+    if (id && el.itemList) {
+        const kartu = Array.from(el.itemList.querySelectorAll(".card")).find((c) => c.dataset.id === id);
+        if (kartu) kartu.focus();
+    }
+}
+
+function simpanDraftPenawaran() {
+    const { target, ditawarkan, selisih, lengkap } = hitungPerbandingan();
+
+    if (!ditawarkan) {
+        tampilkanErrorPenawaran("penawaran-pilih", "Pilih dulu barang yang kamu tawarkan.");
+        tampilkanToast("Barang yang ditawarkan belum dipilih.", "error");
+        return;
+    }
+    tampilkanErrorPenawaran("penawaran-pilih", "");
+
+    const mode = modeUangAktif();
+    let uang = 0;
+    if (mode === "dengan") {
+        uang = Number(el.penawaranUang.value) || 0;
+        if (!(uang > 0)) {
+            tampilkanErrorPenawaran("penawaran-uang", "Isi nominal uang tambahan lebih dari 0.");
+            tampilkanToast("Nominal uang tambahan belum valid.", "error");
+            return;
+        }
+        tampilkanErrorPenawaran("penawaran-uang", "");
+    }
+
+    // Arah uang hanya bisa dipastikan bila nilai kedua barang diketahui.
+    let arahUang = null;
+    if (mode === "dengan" && lengkap && selisih !== 0) {
+        arahUang = selisih > 0 ? "kamu" : "pemilik";
+    }
+
+    const draft = {
+        id: buatId(),
+        waktu: Date.now(),
+        target: {
+            id: target.id,
+            nama: target.nama,
+            nilai: Number(target.nilai) || 0,
+            kategori: target.kategori,
+        },
+        ditawarkan: {
+            id: ditawarkan.id,
+            nama: ditawarkan.nama,
+            nilai: Number(ditawarkan.nilai) || 0,
+            kategori: ditawarkan.kategori,
+        },
+        pakaiUang: mode === "dengan",
+        uang: mode === "dengan" ? uang : 0,
+        arahUang,
+        selisih: lengkap ? selisih : null,
+    };
+
+    state.draftPenawaran.unshift(draft);
+    simpanDraftKeStorage();
+    renderDraftPenawaran();
+    tutupPenawaran();
+    tampilkanToast(
+        "Draft penawaran disimpan di perangkat ini — belum dikirim ke server.",
+        "info"
+    );
+    if (el.penawaranSection) {
+        el.penawaranSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+function rincianUang(draft) {
+    if (!draft.pakaiUang || !(Number(draft.uang) > 0)) return "Tanpa uang tambahan";
+    if (draft.arahUang === "kamu") return `${formatRupiah(draft.uang)} (dari kamu)`;
+    if (draft.arahUang === "pemilik") return `${formatRupiah(draft.uang)} (dari pemilik barang tujuan)`;
+    return `${formatRupiah(draft.uang)} (arah belum pasti — nilai belum lengkap)`;
+}
+
+function templateDraft(draft) {
+    const selisihTeks =
+        draft.selisih === null || draft.selisih === undefined
+            ? "Tidak dihitung"
+            : formatRupiah(Math.abs(draft.selisih));
+    return `
+        <article class="draft-card" data-id="${escapeHTML(draft.id)}">
+            <div class="draft-head">
+                <span class="proto-badge proto-badge-sm">Draft</span>
+                <span class="draft-waktu">${escapeHTML(waktuRelatif(draft.waktu))}</span>
+            </div>
+            <p class="draft-exchange">
+                <strong>${escapeHTML(draft.ditawarkan.nama)}</strong>
+                <span aria-hidden="true">⇄</span>
+                <strong>${escapeHTML(draft.target.nama)}</strong>
+            </p>
+            <dl class="draft-info">
+                <div><dt>Estimasi barangmu</dt><dd>${escapeHTML(teksNilai(draft.ditawarkan.nilai))}</dd></div>
+                <div><dt>Estimasi barang tujuan</dt><dd>${escapeHTML(teksNilai(draft.target.nilai))}</dd></div>
+                <div><dt>Perkiraan selisih</dt><dd>${escapeHTML(selisihTeks)}</dd></div>
+                <div><dt>Uang tambahan</dt><dd>${escapeHTML(rincianUang(draft))}</dd></div>
+                <div><dt>Status</dt><dd>Draft lokal — belum dikirim</dd></div>
+            </dl>
+            <button type="button" class="btn btn-outline btn-sm draft-hapus" data-hapus="${escapeHTML(draft.id)}">Hapus draft</button>
+        </article>
+    `;
+}
+
+function renderDraftPenawaran() {
+    if (!el.draftList) return;
+    const daftar = state.draftPenawaran;
+    el.draftList.innerHTML = daftar.map(templateDraft).join("");
+    if (el.draftEmpty) el.draftEmpty.hidden = daftar.length !== 0;
+    if (el.btnHapusDraft) el.btnHapusDraft.hidden = daftar.length === 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -683,39 +1127,73 @@ function pasangEvent() {
     });
 
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !el.modal.hidden) tutupModal();
-    });
-
-    // --- Modal: tahan fokus (Tab) agar tetap di dalam dialog ---
-    el.modal?.addEventListener("keydown", (event) => {
-        if (event.key !== "Tab") return;
-
-        const kandidat = el.modal.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const daftarFokus = Array.from(kandidat).filter(
-            (node) => !node.disabled && node.offsetParent !== null
-        );
-        if (daftarFokus.length === 0) return;
-
-        const pertama = daftarFokus[0];
-        const terakhir = daftarFokus[daftarFokus.length - 1];
-
-        if (event.shiftKey && document.activeElement === pertama) {
-            event.preventDefault();
-            terakhir.focus();
-        } else if (!event.shiftKey && document.activeElement === terakhir) {
-            event.preventDefault();
-            pertama.focus();
+        if (event.key !== "Escape") return;
+        if (el.modalPenawaran && !el.modalPenawaran.hidden) {
+            tutupPenawaran();
+        } else if (el.modal && !el.modal.hidden) {
+            tutupModal();
         }
     });
 
-    // --- Aksi di dalam modal ---
-    el.btnAjukan?.addEventListener("click", () => {
-        const barang = state.barang.find((b) => b.id === state.idAktifModal);
-        if (!barang) return;
-        tampilkanToast(`Penawaran barter untuk "${barang.nama}" berhasil dikirim!`, "success");
-        tutupModal();
+    // --- Modal: tahan fokus (Tab) agar tetap di dalam dialog ---
+    pasangPerangkapFokus(el.modal);
+    pasangPerangkapFokus(el.modalPenawaran);
+
+    // --- Buka formulir penawaran barter (prototipe) ---
+    el.btnAjukan?.addEventListener("click", bukaPenawaran);
+    el.closePenawaran?.addEventListener("click", tutupPenawaran);
+    el.modalPenawaran?.addEventListener("click", (event) => {
+        if (event.target === el.modalPenawaran) tutupPenawaran();
+    });
+
+    // Ubah pilihan barang -> perbarui perbandingan & tinjauan
+    el.penawaranPilih?.addEventListener("change", () => {
+        tampilkanErrorPenawaran("penawaran-pilih", "");
+        perbaruiPerbandingan();
+        sinkronUang();
+        perbaruiTinjauan();
+    });
+
+    // Pilih mode uang tambahan
+    el.uangTanpa?.addEventListener("change", () => {
+        if (!el.uangTanpa.checked) return;
+        sinkronUang();
+        perbaruiTinjauan();
+    });
+    el.uangDengan?.addEventListener("change", () => {
+        if (!el.uangDengan.checked) return;
+        sinkronUang();
+        perbaruiTinjauan();
+        el.penawaranUang?.focus();
+    });
+
+    el.penawaranUang?.addEventListener("input", () => {
+        tampilkanErrorPenawaran("penawaran-uang", "");
+        perbaruiTinjauan();
+    });
+
+    el.penawaranSimpan?.addEventListener("click", simpanDraftPenawaran);
+
+    // Hapus satu draft (event delegation)
+    el.draftList?.addEventListener("click", (event) => {
+        const tombol = event.target.closest("[data-hapus]");
+        if (!tombol) return;
+        const id = tombol.dataset.hapus;
+        state.draftPenawaran = state.draftPenawaran.filter((d) => d.id !== id);
+        simpanDraftKeStorage();
+        renderDraftPenawaran();
+        tampilkanToast("Draft penawaran dihapus.", "info");
+    });
+
+    // Hapus semua draft
+    el.btnHapusDraft?.addEventListener("click", () => {
+        if (state.draftPenawaran.length === 0) return;
+        const setuju = confirm("Hapus semua draft penawaran di perangkat ini?");
+        if (!setuju) return;
+        state.draftPenawaran = [];
+        simpanDraftKeStorage();
+        renderDraftPenawaran();
+        tampilkanToast("Semua draft penawaran dihapus.", "info");
     });
 
     el.btnHapus?.addEventListener("click", () => {
@@ -761,6 +1239,8 @@ function pasangEvent() {
    -------------------------------------------------------------------------- */
 function mulai() {
     isiSelectForm();
+    state.draftPenawaran = muatDraftPenawaran();
+    renderDraftPenawaran();
     pasangEvent();
     inisialisasiData();
 }

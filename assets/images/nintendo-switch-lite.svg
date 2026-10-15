@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Ilustrasi konsol game handheld">
+  <!-- Aset ilustrasi orisinal BarterYuk! (bebas dipakai & didistribusikan) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="0.5" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#ede9fe"/>
+    </linearGradient>
+    <linearGradient id="scene" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset="0.6" stop-color="#bfdbfe"/>
+      <stop offset="1" stop-color="#dcfce7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <ellipse cx="400" cy="510" rx="250" ry="24" fill="#1e3a8a" opacity="0.12"/>
+
+  <!-- Bodi konsol -->
+  <rect x="140" y="150" width="520" height="300" rx="52" fill="#2563eb"/>
+  <rect x="152" y="162" width="496" height="276" rx="42" fill="#3b82f6"/>
+
+  <!-- Layar -->
+  <rect x="248" y="192" width="304" height="216" rx="16" fill="#0f172a"/>
+  <rect x="260" y="204" width="280" height="192" rx="10" fill="url(#scene)"/>
+  <circle cx="316" cy="242" r="22" fill="#fef08a"/>
+  <path d="M260 396c40-58 84-58 120-20 30-40 74-52 120-6l10 26H260z" fill="#22c55e"/>
+  <rect x="260" y="204" width="280" height="26" rx="8" fill="#ffffff" opacity="0.25"/>
+
+  <!-- D-pad (kiri) -->
+  <g fill="#1e293b">
+    <rect x="184" y="266" width="34" height="88" rx="10"/>
+    <rect x="157" y="293" width="88" height="34" rx="10"/>
+  </g>
+
+  <!-- Tombol A/B/X/Y (kanan) -->
+  <circle cx="614" cy="292" r="19" fill="#1e293b"/>
+  <circle cx="583" cy="323" r="19" fill="#1e293b"/>
+  <circle cx="645" cy="323" r="19" fill="#1e293b"/>
+  <circle cx="614" cy="354" r="19" fill="#1e293b"/>
+  <text x="614" y="298" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">X</text>
+  <text x="583" y="329" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">Y</text>
+  <text x="645" y="329" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">A</text>
+  <text x="614" y="360" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">B</text>
+
+  <!-- Tombol start/select -->
+  <rect x="368" y="424" width="24" height="10" rx="5" fill="#1e293b"/>
+  <rect x="408" y="424" width="24" height="10" rx="5" fill="#1e293b"/>
+
+  <!-- Speaker -->
+  <g fill="#1e3a8a" opacity="0.6">
+    <circle cx="196" cy="400" r="4"/>
+    <circle cx="212" cy="400" r="4"/>
+    <circle cx="196" cy="416" r="4"/>
+    <circle cx="212" cy="416" r="4"/>
+  </g>
+</svg>

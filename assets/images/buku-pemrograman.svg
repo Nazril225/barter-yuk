@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Ilustrasi tumpukan buku pemrograman web">
+  <!-- Aset ilustrasi orisinal BarterYuk! (bebas dipakai & didistribusikan) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eff6ff"/>
+      <stop offset="0.55" stop-color="#e0e7ff"/>
+      <stop offset="1" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <ellipse cx="400" cy="520" rx="240" ry="24" fill="#1e3a8a" opacity="0.10"/>
+
+  <!-- Simbol kode -->
+  <text x="400" y="214" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="132" font-weight="700" fill="#2563eb" opacity="0.9">&lt;/&gt;</text>
+
+  <!-- Buku 1 (bawah) -->
+  <g>
+    <rect x="168" y="430" width="464" height="62" rx="10" fill="#1d4ed8"/>
+    <rect x="188" y="444" width="120" height="34" rx="8" fill="#ffffff" opacity="0.85"/>
+    <text x="248" y="468" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="20" font-weight="700" fill="#1d4ed8">PHP</text>
+    <rect x="166" y="430" width="10" height="62" rx="5" fill="#1e40af"/>
+  </g>
+
+  <!-- Buku 2 -->
+  <g>
+    <rect x="150" y="368" width="500" height="62" rx="10" fill="#f59e0b"/>
+    <rect x="170" y="382" width="120" height="34" rx="8" fill="#ffffff" opacity="0.9"/>
+    <text x="230" y="406" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="20" font-weight="700" fill="#b45309">JS</text>
+    <rect x="148" y="368" width="10" height="62" rx="5" fill="#b45309"/>
+  </g>
+
+  <!-- Buku 3 -->
+  <g>
+    <rect x="186" y="306" width="428" height="62" rx="10" fill="#0f766e"/>
+    <rect x="206" y="320" width="120" height="34" rx="8" fill="#ffffff" opacity="0.9"/>
+    <text x="266" y="344" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="18" font-weight="700" fill="#0f766e">CSS</text>
+    <rect x="184" y="306" width="10" height="62" rx="5" fill="#115e59"/>
+  </g>
+
+  <!-- Penanda halaman -->
+  <g fill="#ffffff" opacity="0.85">
+    <rect x="600" y="446" width="26" height="30" rx="4"/>
+    <rect x="596" y="384" width="26" height="30" rx="4"/>
+    <rect x="586" y="322" width="26" height="30" rx="4"/>
+  </g>
+</svg>

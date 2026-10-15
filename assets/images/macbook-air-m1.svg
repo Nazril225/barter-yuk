@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Ilustrasi laptop MacBook Air M1">
+  <!-- Aset ilustrasi orisinal BarterYuk! (bebas dipakai & didistribusikan) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="0.55" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <ellipse cx="400" cy="500" rx="250" ry="26" fill="#1e3a8a" opacity="0.12"/>
+
+  <!-- Badan layar -->
+  <rect x="175" y="130" width="450" height="300" rx="20" fill="#0f172a"/>
+  <rect x="193" y="148" width="414" height="264" rx="10" fill="url(#screen)"/>
+
+  <!-- Isi layar: tata letak aplikasi sederhana -->
+  <rect x="193" y="148" width="414" height="30" fill="#ffffff" opacity="0.18"/>
+  <circle cx="213" cy="163" r="5" fill="#fecaca"/>
+  <circle cx="231" cy="163" r="5" fill="#fde68a"/>
+  <circle cx="249" cy="163" r="5" fill="#bbf7d0"/>
+  <rect x="193" y="178" width="118" height="234" fill="#ffffff" opacity="0.12"/>
+  <rect x="211" y="198" width="82" height="12" rx="6" fill="#ffffff" opacity="0.85"/>
+  <rect x="211" y="222" width="60" height="9" rx="4.5" fill="#ffffff" opacity="0.55"/>
+  <rect x="211" y="243" width="70" height="9" rx="4.5" fill="#ffffff" opacity="0.55"/>
+  <rect x="211" y="264" width="52" height="9" rx="4.5" fill="#ffffff" opacity="0.55"/>
+  <rect x="333" y="200" width="252" height="72" rx="10" fill="#ffffff" opacity="0.9"/>
+  <rect x="333" y="288" width="118" height="104" rx="10" fill="#ffffff" opacity="0.75"/>
+  <rect x="467" y="288" width="118" height="104" rx="10" fill="#ffffff" opacity="0.55"/>
+
+  <!-- Notch kamera -->
+  <rect x="382" y="136" width="36" height="8" rx="4" fill="#334155"/>
+
+  <!-- Bodi bawah -->
+  <path d="M120 430h560l34 42a12 12 0 0 1-10 18H96a12 12 0 0 1-10-18z" fill="#cbd5e1"/>
+  <rect x="350" y="440" width="100" height="10" rx="5" fill="#94a3b8"/>
+</svg>
