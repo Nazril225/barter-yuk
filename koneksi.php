@@ -2,7 +2,7 @@
 // Week 5: Server-Side Processing & Function PHP
 $namaPlatform = "BarterYuk!";
 $tahunRilis = 2026;
-$statusKoneksi = "Connected to Database Server";
+$statusKoneksi = "Data masih statis di dalam file PHP (belum terhubung ke database)";
 
 function hitungTotalBarang($arrayData) {
     return count($arrayData);

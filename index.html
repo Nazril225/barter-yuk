@@ -3,69 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BarterYuk! - Platform Barter Barang Online (Web Programming)</title>
+    <meta name="description" content="BarterYuk! - Platform barter barang modern. Tukar barang yang tidak terpakai dengan yang kamu butuhkan, tanpa uang tunai.">
+    <title>BarterYuk! - Platform Barter Barang Modern</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Header / Navbar (Week 2: Semantic HTML) -->
-    <header>
-        <div class="logo">🔄 BarterYuk!</div>
-        <nav>
-            <a href="#hero">Beranda</a>
-            <a href="#katalog">Katalog Barang</a>
-            <a href="#tambah">Tambah Barang</a>
-        </nav>
+    <a class="skip-link" href="#katalog">Lewati ke katalog</a>
+
+    <!-- ============ HEADER & NAVIGASI (Semantic HTML - Week 2) ============ -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="logo" href="#hero">
+                <span class="logo-mark">🔄</span>
+                <span>BarterYuk<sup>!</sup></span>
+            </a>
+
+            <nav class="main-nav" aria-label="Navigasi utama">
+                <ul>
+                    <li><a href="#hero">Beranda</a></li>
+                    <li><a href="#katalog">Katalog</a></li>
+                    <li><a href="#tambah">Tambah Barang</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <!-- Main Content -->
     <main>
-        <!-- Hero Section -->
-        <section id="hero">
-            <h1>Tukar Barangmu dengan yang Kamu Butuhkan</h1>
-            <p>Solusi mudah, ramah lingkungan, dan hemat tanpa uang tunai.</p>
-            <button id="btn-katalog" class="btn">Lihat Katalog</button>
+        <!-- ============ HERO ============ -->
+        <section id="hero" class="hero">
+            <div class="container hero-inner">
+                <p class="hero-eyebrow">Platform Barter Barang #1 di Indonesia</p>
+                <h1>Tukar Barangmu dengan yang Kamu Butuhkan</h1>
+                <p class="hero-text">
+                    BarterYuk! menghubungkan pemilik barang untuk saling bertukar secara langsung.
+                    Modern, ramah lingkungan, dan hemat tanpa uang tunai.
+                </p>
+
+                <div class="hero-actions">
+                    <button type="button" id="btn-katalog" class="btn btn-primary">Jelajahi Katalog</button>
+                    <a href="#tambah" class="btn btn-ghost">Pasang Barang</a>
+                </div>
+
+                <!-- Statistik ringkas (dirender dinamis oleh JavaScript) -->
+                <dl class="stats" id="stats" aria-label="Statistik katalog">
+                    <div class="stat">
+                        <dt>Total Barang</dt>
+                        <dd id="stat-total">0</dd>
+                    </div>
+                    <div class="stat">
+                        <dt>Kategori</dt>
+                        <dd id="stat-kategori">0</dd>
+                    </div>
+                    <div class="stat">
+                        <dt>Kota</dt>
+                        <dd id="stat-kota">0</dd>
+                    </div>
+                </dl>
+            </div>
         </section>
 
-        <!-- Section Katalog Barang & Fitur Pencarian (Week 3 & 4) -->
-        <section id="katalog">
-            <h2>Katalog Barang Pilihan</h2>
-            
-            <!-- Fitur Pencarian Interaktif -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <input type="text" id="input-pencarian" placeholder="Cari nama barang atau kategori..." style="width: 100%; max-width: 400px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;">
-            </div>
+        <!-- ============ KATALOG + LIVE SEARCH (Week 4) ============ -->
+        <section id="katalog" class="section">
+            <div class="container">
+                <header class="section-head">
+                    <div>
+                        <h2>Katalog Barang Tersedia</h2>
+                        <p class="section-sub">Klik kartu untuk melihat detail dan mengajukan penawaran barter.</p>
+                    </div>
+                    <button type="button" id="btn-reload" class="btn btn-outline" title="Muat ulang data dari API">
+                        ↻ Muat Ulang Data
+                    </button>
+                </header>
 
-            <div id="loading" style="text-align: center; color: #2563eb; margin-bottom: 15px;">Memuat data barang dari server...</div>
-            <div id="item-list" class="grid-container">
-                <!-- Data barang akan dimuat secara dinamis via JS -->
+                <!-- Toolbar pencarian -->
+                <div class="toolbar">
+                    <div class="search-field">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input
+                            type="search"
+                            id="input-pencarian"
+                            placeholder="Cari nama barang, kategori, atau kota..."
+                            autocomplete="off"
+                            aria-label="Cari barang">
+                        <button type="button" id="btn-clear-search" class="clear-search" aria-label="Bersihkan pencarian" hidden>×</button>
+                    </div>
+
+                    <div class="toolbar-row">
+                        <div class="chips" id="filter-kategori" role="group" aria-label="Filter kategori"></div>
+
+                        <label class="sort-field">
+                            <span>Urutkan</span>
+                            <select id="urutkan">
+                                <option value="terbaru">Terbaru</option>
+                                <option value="terlama">Terlama</option>
+                                <option value="nama-asc">Nama A–Z</option>
+                                <option value="nama-desc">Nama Z–A</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <p class="result-info" id="result-info" aria-live="polite"></p>
+
+                <!-- Loading state (skeleton) -->
+                <div id="loading" class="skeleton-grid" aria-hidden="true" hidden></div>
+
+                <!-- Grid kartu barang -->
+                <div id="item-list" class="grid-container"></div>
+
+                <!-- Empty state -->
+                <div id="empty-state" class="empty-state" hidden>
+                    <span class="empty-emoji" aria-hidden="true">📦</span>
+                    <h3>Barang tidak ditemukan</h3>
+                    <p>Coba ubah kata kunci pencarian atau pilih kategori lain.</p>
+                </div>
+
+                <!-- Error state (Week 4 - error handling saat request API gagal) -->
+                <div id="error-state" class="error-state" role="alert" hidden>
+                    <span class="empty-emoji" aria-hidden="true">⚠️</span>
+                    <h3>Gagal memuat data barang</h3>
+                    <p id="error-message">Pastikan server PHP berjalan, lalu coba lagi.</p>
+                    <button type="button" id="btn-retry" class="btn btn-outline">Coba Lagi</button>
+                </div>
             </div>
         </section>
 
-        <!-- Section Tambah Barang (Form Interaktif) -->
-        <section id="tambah" style="max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <h2 style="color: #1e3a8a; margin-bottom: 20px; text-align: center;">Tambah Barang Barter Baru</h2>
-            <form id="form-tambah">
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Nama Barang:</label>
-                    <input type="text" id="nama-barang" required placeholder="Contoh: Smartwatch Bekas" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <!-- ============ FORM TAMBAH BARANG (Week 5) ============ -->
+        <section id="tambah" class="section">
+            <div class="container">
+                <div class="form-card">
+                    <header class="form-head">
+                        <h2>✨ Tambah Barang Barter Baru</h2>
+                        <p>Isi data di bawah ini. Barang otomatis tersimpan di perangkatmu (LocalStorage).</p>
+                    </header>
+
+                    <form id="form-tambah" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nama-barang">Nama Barang</label>
+                                <input type="text" id="nama-barang" name="nama" placeholder="Contoh: Kamera Mirrorless" required maxlength="60">
+                                <small class="error-text" data-error-for="nama"></small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="kategori-barang">Kategori</label>
+                                <select id="kategori-barang" name="kategori" required></select>
+                                <small class="error-text" data-error-for="kategori"></small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="kondisi-barang">Kondisi Barang</label>
+                                <select id="kondisi-barang" name="kondisi" required></select>
+                                <small class="error-text" data-error-for="kondisi"></small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pemilik-barang">Nama Pemilik</label>
+                                <input type="text" id="pemilik-barang" name="pemilik" placeholder="Contoh: Nazril" required maxlength="40">
+                                <small class="error-text" data-error-for="pemilik"></small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lokasi-barang">Kota / Lokasi</label>
+                                <input type="text" id="lokasi-barang" name="lokasi" placeholder="Contoh: Bandung" maxlength="40">
+                                <small class="error-text" data-error-for="lokasi"></small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nilai-barang">Estimasi Nilai (Rp)</label>
+                                <input type="number" id="nilai-barang" name="nilai" placeholder="Contoh: 1500000" min="0" step="50000">
+                                <small class="error-text" data-error-for="nilai"></small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gambar-barang">URL Gambar (Opsional)</label>
+                            <input type="url" id="gambar-barang" name="gambar" placeholder="https://picsum.photos/id/1/600/400">
+                            <small class="error-text" data-error-for="gambar"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="deskripsi-barang">Deskripsi Singkat</label>
+                            <textarea id="deskripsi-barang" name="deskripsi" rows="3" maxlength="180" placeholder="Ceritakan kondisi dan alasan ingin menukar barang ini..."></textarea>
+                            <div class="form-hint">
+                                <small class="error-text" data-error-for="deskripsi"></small>
+                                <small id="char-counter">0 / 180</small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Publikasikan Barang</button>
+                            <button type="reset" class="btn btn-outline">Bersihkan</button>
+                        </div>
+                    </form>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Kondisi:</label>
-                    <input type="text" id="kondisi-barang" required placeholder="Contoh: Mulus 95%" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">Kategori:</label>
-                    <input type="text" id="kategori-barang" required placeholder="Contoh: Elektronik" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                </div>
-                <button type="submit" class="btn" style="width: 100%;">Simpan Barang</button>
-            </form>
+            </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 BarterYuk! - Selesai Sprint 01 s.d. Sprint 04 (Week 1 - 5)</p>
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p><strong>BarterYuk!</strong> — Modern Web Application Project (Week 1 – 5)</p>
+            <p class="footer-small">Dibangun dengan HTML Semantic, CSS Grid &amp; Flexbox, JavaScript DOM API, Fetch API, dan PHP JSON API.</p>
+        </div>
     </footer>
+
+    <!-- ============ MODAL DETAIL POPUP (Week 5) ============ -->
+    <div id="modal-detail" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-nama" hidden>
+        <div class="modal-content" role="document">
+            <button type="button" class="close-btn" aria-label="Tutup detail">&times;</button>
+
+            <div class="modal-media">
+                <img id="modal-gambar" class="modal-img" alt="" hidden>
+                <span class="modal-emoji" id="modal-emoji" aria-hidden="true">📦</span>
+                <span class="badge" id="modal-kondisi-badge"></span>
+            </div>
+
+            <h3 id="modal-nama" class="modal-title"></h3>
+            <p class="modal-kategori" id="modal-kategori"></p>
+
+            <p class="modal-deskripsi" id="modal-deskripsi"></p>
+
+            <ul class="modal-info">
+                <li><span>Pemilik</span><strong id="modal-pemilik"></strong></li>
+                <li><span>Lokasi</span><strong id="modal-lokasi"></strong></li>
+                <li><span>Estimasi Nilai</span><strong id="modal-nilai"></strong></li>
+                <li><span>Dipasang</span><strong id="modal-waktu"></strong></li>
+                <li><span>ID Barang</span><strong id="modal-id"></strong></li>
+            </ul>
+
+            <p class="modal-note">Penawaran barter saat ini masih berupa simulasi dan belum dikirim ke server.</p>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" id="btn-ajukan-modal">Ajukan Penawaran Barter</button>
+                <button type="button" class="btn btn-danger" id="btn-hapus-modal">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TOAST NOTIFICATION ============ -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script src="script.js"></script>
 </body>
